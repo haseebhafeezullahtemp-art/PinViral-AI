@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+    function isRequestOwner() {
+      return isAuthenticated() && request.auth.uid == request.resource.data.uid;
+    }
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.email == "haseebhafeezullahtemp@gmail.com" && request.auth.token.email_verified == true);
+    }
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.uid is string && data.uid.size() > 0 &&
+             data.email is string && isValidEmail(data.email);
+    }
+    function isValidAccount(data) {
+      return data.uid is string && data.username is string && data.accessToken is string;
+    }
+    function isValidCampaign(data) {
+      return data.uid is string && data.niche is string && data.blogUrl is string;
+    }
+    function isValidPin(data) {
+      return data.uid is string && data.campaignId is string && data.title is string && data.imageUrl is string;
+    }
+    function isValidLink(data) {
+      return data.uid is string && data.url is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    // Pinterest Accounts
+    match /accounts/{accountId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isRequestOwner() && isValidAccount(request.resource.data);
+      allow update: if (isDocOwner() || isAdmin()) && isValidAccount(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    // Campaigns
+    match /campaigns/{campaignId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isRequestOwner() && isValidCampaign(request.resource.data);
+      allow update: if (isDocOwner() || isAdmin()) && isValidCampaign(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    // Scheduled Pins
+    match /scheduledPins/{pinId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isRequestOwner() && isValidPin(request.resource.data);
+      allow update: if (isDocOwner() || isAdmin()) && isValidPin(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    // Links
+    match /links/{linkId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isRequestOwner() && isValidLink(request.resource.data);
+      allow update: if (isDocOwner() || isAdmin()) && isValidLink(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+  }
+}

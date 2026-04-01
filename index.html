@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PinViral AI - Pinterest Automation</title>
+    <script>
+      // Fix for libraries trying to overwrite global fetch in AI Studio environment
+      (function() {
+        if (typeof window !== 'undefined') {
+          const originalFetch = window.fetch;
+          try {
+            Object.defineProperty(window, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: () => originalFetch,
+              set: (val) => { 
+                console.warn('Attempted to overwrite read-only fetch. Ignoring assignment.');
+              }
+            });
+          } catch (e) {
+            try {
+              const proto = Object.getPrototypeOf(window);
+              if (proto) {
+                Object.defineProperty(proto, 'fetch', {
+                  configurable: true,
+                  enumerable: true,
+                  get: () => originalFetch,
+                  set: (val) => {
+                    console.warn('Attempted to overwrite read-only fetch on prototype. Ignoring assignment.');
+                  }
+                });
+              }
+            } catch (e2) {}
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

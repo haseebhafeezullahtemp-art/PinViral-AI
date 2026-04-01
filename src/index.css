@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  --main-bg: #F9FAFB;
+  --sidebar-bg: #F3F4F6;
+  --surface-bg: #FFFFFF;
+  --accent-primary: #8B5CF6;
+  --accent-hover: #7C3AED;
+  --success: #10B981;
+  --error: #EF4444;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --border-primary: #E5E7EB;
+}
+
+.dark {
+  --main-bg: #0A0A0A;
+  --sidebar-bg: #111111;
+  --surface-bg: #1F1F1F;
+  --accent-primary: #8B5CF6;
+  --accent-hover: #A855F7;
+  --success: #34D399;
+  --error: #F87171;
+  --text-primary: #F0F0F0;
+  --text-secondary: #9CA3AF;
+  --border-primary: #374151;
+}
+
+@theme {
+  --color-main-bg: var(--main-bg);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-surface-bg: var(--surface-bg);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-primary: var(--border-primary);
+}
+
+@layer base {
+  body {
+    @apply bg-main-bg text-text-primary transition-colors duration-200 overflow-x-hidden;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-border-primary rounded-full hover:bg-text-secondary transition-colors;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Range input styling */
+input[type='range']::-webkit-slider-thumb {
+  @apply w-4 h-4 bg-accent-primary rounded-full border-2 border-white cursor-pointer shadow-lg;
+  -webkit-appearance: none;
+}
+
+input[type='range']::-moz-range-thumb {
+  @apply w-4 h-4 bg-accent-primary rounded-full border-2 border-white cursor-pointer shadow-lg;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+

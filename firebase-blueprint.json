@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "App user profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "PinterestAccount": {
+      "title": "Pinterest Account",
+      "description": "Connected Pinterest account",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Owner UID" },
+        "username": { "type": "string" },
+        "niche": { "type": "string" },
+        "accessToken": { "type": "string" },
+        "refreshToken": { "type": "string" },
+        "expiresAt": { "type": "number" },
+        "status": { "type": "string", "enum": ["connected", "disconnected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "username", "accessToken"]
+    },
+    "Campaign": {
+      "title": "Campaign",
+      "description": "Pinterest automation campaign",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "niche": { "type": "string" },
+        "pinIdeas": { "type": "string" },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "blogUrl": { "type": "string", "format": "uri" },
+        "numPins": { "type": "number" },
+        "timeGap": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "active", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "niche", "blogUrl"]
+    },
+    "ScheduledPin": {
+      "title": "Scheduled Pin",
+      "description": "A pin scheduled for posting",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "campaignId": { "type": "string" },
+        "accountId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "link": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "scheduledTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["scheduled", "posted", "failed"] },
+        "pinterestPinId": { "type": "string" }
+      },
+      "required": ["uid", "campaignId", "title", "imageUrl", "scheduledTime"]
+    },
+    "Link": {
+      "title": "Link",
+      "description": "A link to be used in pins",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "lastUsedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "url"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/accounts/{accountId}": {
+      "schema": "PinterestAccount",
+      "description": "Pinterest accounts"
+    },
+    "/campaigns/{campaignId}": {
+      "schema": "Campaign",
+      "description": "Automation campaigns"
+    },
+    "/scheduledPins/{pinId}": {
+      "schema": "ScheduledPin",
+      "description": "Scheduled pins queue"
+    },
+    "/links/{linkId}": {
+      "schema": "Link",
+      "description": "Bulk links for pins"
+    }
+  }
+}
