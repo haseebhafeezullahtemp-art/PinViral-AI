@@ -30,5 +30,11 @@
       "status": 200,
       "dest": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/process-pins",
+      "schedule": "*/5 * * * *"
+    }
   ]
 }

@@ -17,7 +17,27 @@ const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
 let db: Firestore;
 
 try {
-  if (fs.existsSync(configPath)) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    console.log("Initializing Firebase Admin using FIREBASE_SERVICE_ACCOUNT env var.");
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      if (getApps().length === 0) {
+        initializeApp({
+          credential: cert(serviceAccount),
+        });
+      }
+      
+      let dbId: string | undefined;
+      if (fs.existsSync(configPath)) {
+        const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        dbId = firebaseConfig.firestoreDatabaseId;
+      }
+      db = getFirestore(dbId);
+      console.log("Firebase Admin initialized successfully with Service Account.");
+    } catch (parseError: any) {
+      console.error("CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT JSON. Check your Vercel environment variables.", parseError.message);
+    }
+  } else if (fs.existsSync(configPath)) {
     const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
     const dbId = firebaseConfig.firestoreDatabaseId || undefined;
     
@@ -192,6 +212,20 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Debug endpoint (safely check env vars)
+app.get("/api/debug", (req, res) => {
+  res.json({
+    VERCEL: process.env.VERCEL || "false",
+    NODE_ENV: process.env.NODE_ENV || "development",
+    HAS_PINTEREST_ID: !!process.env.PINTEREST_CLIENT_ID,
+    HAS_PINTEREST_SECRET: !!process.env.PINTEREST_CLIENT_SECRET,
+    HAS_FIREBASE_SERVICE_ACCOUNT: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+    HAS_GEMINI_KEY: !!process.env.GEMINI_API_KEY,
+    APP_URL: process.env.APP_URL || "not set",
+    FIREBASE_INITIALIZED: !!db
+  });
+});
 
 // API route for Cron Jobs (Vercel)
 app.get("/api/cron/process-pins", async (req, res) => {
