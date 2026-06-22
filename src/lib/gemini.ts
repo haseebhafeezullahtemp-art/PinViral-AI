@@ -64,7 +64,8 @@ export async function generatePinIdeas(
     2. A viral description (100-200 chars) optimized with keywords.
     3. A detailed image generation prompt.
     
-    The image prompt should be descriptive and visual, e.g., "A cozy minimalist living room with beige aesthetic, soft sunlight, high resolution".
+    The style for images must be "Nano Banana" aesthetic: very sticky, viscous, organic, bulging, hyper-realistic textures, vibrant colors, and 3D depth. 
+    The image prompt should be descriptive and visual, e.g., "A sticky, bulging minimalist living room with viscous beige textures, soft sunlight, organic shapes, high resolution".
     
     Return as a JSON array of objects.`,
     config: {
@@ -93,18 +94,48 @@ export async function generatePinIdeas(
 }
 
 export async function generatePinImage(prompt: string): Promise<string> {
-  // Fallback to Pollinations.ai (Totally free, no key needed)
-  // We use the /p/ endpoint which is more stable than the image. subdomain
-  // We also truncate the prompt to avoid URL length issues
-  const truncatedPrompt = prompt.substring(0, 500);
-  const encodedPrompt = encodeURIComponent(truncatedPrompt);
-  const width = 1000;
-  const height = 1500; 
-  const seed = Math.floor(Math.random() * 1000000);
-  
-  // Use pollinations.ai/p/ which returns the image directly
-  const imageUrl = `https://pollinations.ai/p/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
-  
-  console.log(`Generated Pollinations Image URL: ${imageUrl}`);
-  return imageUrl;
+  const ai = getAI();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-image-preview',
+      contents: {
+        parts: [
+          {
+            text: `Generate a high-quality vertical image for Pinterest. 
+            Style: Nano Banana, sticky and bulging, organic textures.
+            Details: ${prompt}`,
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "3:4",
+          imageSize: "1K"
+        },
+      },
+    });
+
+    const candidate = response.candidates?.[0];
+    if (candidate) {
+      for (const part of candidate.content.parts) {
+        if (part.inlineData) {
+          const base64Data = part.inlineData.data;
+          return `data:image/png;base64,${base64Data}`;
+        }
+      }
+    }
+    
+    throw new Error("No image data found in Gemini response");
+  } catch (error) {
+    console.error("Gemini image generation failed, falling back to Pollinations", error);
+    
+    // Fallback to Pollinations.ai if Gemini fails
+    const truncatedPrompt = `sticky bulging Nano Banana style ${prompt}`.substring(0, 500);
+    const encodedPrompt = encodeURIComponent(truncatedPrompt);
+    const width = 1000;
+    const height = 1500; 
+    const seed = Math.floor(Math.random() * 1000000);
+    
+    return `https://pollinations.ai/p/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+  }
 }
